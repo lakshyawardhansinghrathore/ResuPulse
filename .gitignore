@@ -1,0 +1,104 @@
+# ==============================================================================
+# SECRETS & ENVIRONMENT VARIABLES (CRITICAL)
+# ==============================================================================
+.env
+.env.*
+!.env.example
+secrets.toml
+frontend/.streamlit/secrets.toml
+.streamlit/secrets.toml
+
+# ==============================================================================
+# VIRTUAL ENVIRONMENTS
+# ==============================================================================
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==============================================================================
+# PYTHON BYTECODE & CACHES
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==============================================================================
+# JUPYTER NOTEBOOKS
+# ==============================================================================
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# ==============================================================================
+# DATASETS & ML MODEL ARTIFACTS
+# ==============================================================================
+dataset/
+datasets/
+*.csv
+*.tsv
+*.parquet
+*.feather
+
+# Large model weights (HuggingFace / PyTorch / spaCy local exports)
+ml model/
+models/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.pickle
+*.joblib
+*.h5
+
+# ==============================================================================
+# RUNTIME LOGS & TEMPORARY EXPORTS
+# ==============================================================================
+*.log
+backend/logs/
+logs/
+*.pdf
+ats_report*.pdf
+ats_summary.txt
+
+# ==============================================================================
+# TESTING & CODE QUALITY
+# ==============================================================================
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ==============================================================================
+# IDE & OS ARTIFACTS
+# ==============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
