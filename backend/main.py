@@ -3,42 +3,23 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.core.config import(
-    ALLOWED_ORIGINS, 
-    APP_DESCRIPTION, 
-    APP_TITLE, 
-    APP_VERSION, 
-    SPACY_MODEL_PRIMARY, 
-    SPACY_MODEL_SECONDARY, SENTENCE_TRANSFORMER_MODEL
-)
+from backend.core.config import ALLOWED_ORIGINS, APP_DESCRIPTION, APP_TITLE, APP_VERSION
 from backend.api.routes import router
 
 logger=logging.getLogger('ats_resume_scorer')
 
 @asynccontextmanager
-async def lifespan(app:FastAPI):
-    logger.info('Starting ATS Resume Analyzer API...')
-
-    logger.info(f'Loading spaCy NLP model: {SPACY_MODEL_PRIMARY}')
-    import spacy
-    try:
-        app.state.nlp = spacy.load(SPACY_MODEL_PRIMARY)
-        logger.info(f'Loaded {SPACY_MODEL_PRIMARY}')
-    except OSError:
-        logger.warning(f'{SPACY_MODEL_PRIMARY} not found — falling back to {SPACY_MODEL_SECONDARY}')
-        app.state.nlp = spacy.load(SPACY_MODEL_SECONDARY)
-        logger.info(f'Loaded {SPACY_MODEL_SECONDARY} (fallback)')
-
-    logger.info(f'Loading SentenceTransformer: {SENTENCE_TRANSFORMER_MODEL}')
-    from sentence_transformers import SentenceTransformer
-    app.state.embedder = SentenceTransformer(SENTENCE_TRANSFORMER_MODEL)
-    logger.info(f'Loaded {SENTENCE_TRANSFORMER_MODEL}')
-
-    logger.info('All models loaded. API is ready to serve requests.')
-
+async def lifespan(app: FastAPI):
+    # ── Models are intentionally NOT loaded here ──────────────────────────────
+    # Loading SpaCy + SentenceTransformer at boot exceeds Render's 512 MB free
+    # tier and crashes the process before a single request is served.
+    # Instead, backend/utils/model_loader.py provides lru_cache singletons that
+    # load each model once on the first request that needs it.
+    # The first resume-analysis call will be ~5 s slower; all subsequent calls
+    # use the cached model and are fast.
+    logger.info("ATS Resume Analyzer API starting (models will load lazily on first request).")
     yield
-
-    logger.info('Shutting down the ATS Resume Analyzer API...')
+    logger.info("Shutting down the ATS Resume Analyzer API.")
 
 app=FastAPI(
     title=APP_TITLE, 

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Uplo
 
 from backend.api.auth import get_current_user
 from backend.models.schemas import AnalysisResponse, ComponentScores, JDComparison, SkillValidationDetails
+from backend.utils.model_loader import get_embedder, get_nlp
 logger = logging.getLogger('ats_resume_scorer')
 
 router = APIRouter(prefix='/api/v1', tags=['Analysis'])
@@ -18,9 +19,9 @@ async def analyze_resume(
 ):
     warnings: List[str] = []
 
-
-    nlp      = request.app.state.nlp
-    embedder = request.app.state.embedder
+    # Lazy-load models on first request (lru_cache ensures they are only loaded once)
+    nlp      = get_nlp()
+    embedder = get_embedder()
 
 
     try:
@@ -111,12 +112,16 @@ async def analyze_resume(
     return response
 
 @router.get('/health')
-async def health_check(request: Request):
-    """Health check — confirms models are loaded and the API is ready."""
+async def health_check():
+    """Health check — reports whether models have been lazily loaded yet."""
+    from backend.utils.model_loader import get_nlp, get_embedder
+    # Check the lru_cache without triggering a load
+    nlp_loaded      = get_nlp.cache_info().currsize > 0
+    embedder_loaded = get_embedder.cache_info().currsize > 0
     return {
         'status':          'healthy',
-        'nlp_loaded':      request.app.state.nlp is not None,
-        'embedder_loaded': request.app.state.embedder is not None,
+        'nlp_loaded':      nlp_loaded,
+        'embedder_loaded': embedder_loaded,
     }
 
 @router.get('/history')
