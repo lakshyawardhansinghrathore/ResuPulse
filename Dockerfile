@@ -19,7 +19,7 @@ WORKDIR /app
 # free tier. Installing the CPU wheel first tells pip "torch is already satisfied"
 # so it won't download the GPU variant when installing sentence-transformers.
 RUN pip install --no-cache-dir \
-    torch==2.3.1+cpu torchvision==0.18.1+cpu torchaudio==2.3.1+cpu \
+    torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu \
     --index-url https://download.pytorch.org/whl/cpu
 
 # Copy and install remaining backend requirements
