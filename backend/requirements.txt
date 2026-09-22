@@ -4,6 +4,10 @@ pydantic>=2.6
 python-multipart>=0.0.9
 python-dotenv>=1.0
 spacy>=3.7,<4.0
+# NOTE: torch is intentionally NOT listed here.
+# The Dockerfile installs the CPU-only build of torch first (via pytorch.org/whl/cpu)
+# so that sentence-transformers picks it up without pulling in 2 GB of CUDA libraries.
+# Adding torch here would let pip override that with the full GPU build.
 sentence-transformers>=2.5
 numpy>=1.26
 rapidfuzz>=3.6

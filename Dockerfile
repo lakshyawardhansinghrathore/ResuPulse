@@ -13,14 +13,25 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy backend requirements
-COPY backend/requirements.txt .
+# ── CRITICAL: Install CPU-only PyTorch FIRST ──────────────────────────────────
+# sentence-transformers depends on torch. If we let pip resolve it, it pulls in
+# the full CUDA build (~2 GB of nvidia_* packages) which crashes Render's 512 MB
+# free tier. Installing the CPU wheel first tells pip "torch is already satisfied"
+# so it won't download the GPU variant when installing sentence-transformers.
+RUN pip install --no-cache-dir \
+    torch==2.3.1+cpu torchvision==0.18.1+cpu torchaudio==2.3.1+cpu \
+    --index-url https://download.pytorch.org/whl/cpu
 
-# Install Python dependencies
+# Copy and install remaining backend requirements
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download the SpaCy model
 RUN python -m spacy download en_core_web_md
+
+# Pre-download the sentence-transformer model so it's baked into the image
+# (avoids a slow first-request download on Render's cold start)
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
 # Copy the backend code
 COPY backend ./backend
