@@ -20,6 +20,8 @@ def _backend_url() -> str:
                 return str(st.secrets["backend_url"]).rstrip("/")
             if "backend" in st.secrets and "url" in st.secrets["backend"]:
                 return str(st.secrets["backend"]["url"]).rstrip("/")
+            if "url" in st.secrets:
+                return str(st.secrets["url"]).rstrip("/")
     except (KeyError, FileNotFoundError, AttributeError):
         pass
     return DEFAULT_BACKEND_URL

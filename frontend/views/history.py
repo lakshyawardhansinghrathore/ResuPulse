@@ -11,7 +11,6 @@ def _show_backend_error(exc: Exception) -> None:
             st.error(
                 "Could not reach the backend at `http://localhost:8000`. "
                 "If running locally, start it with `uvicorn backend.main:app`. "
-                "If running on Streamlit Cloud, add `[backend] url = 'https://resupulse-1.onrender.com'` to your Streamlit App Secrets."
             )
         else:
             st.error(
