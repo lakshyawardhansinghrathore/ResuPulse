@@ -16,14 +16,19 @@ except ImportError:
 
 
 def _secret(key: str, section: str = 'supabase') -> str:
-    """Read from env first, then fall back to st.secrets[section][key]."""
+    """Read from env first, then fall back to st.secrets[key] or st.secrets[section][key]."""
     val = os.getenv(key, '')
     if val:
         return val
     try:
-        return st.secrets[section][key]
+        if hasattr(st, "secrets"):
+            if key in st.secrets:
+                return str(st.secrets[key])
+            if section in st.secrets and key in st.secrets[section]:
+                return str(st.secrets[section][key])
     except (KeyError, FileNotFoundError, AttributeError):
-        return ''
+        pass
+    return ''
 
 
 SUPABASE_URL = _secret('SUPABASE_URL')
@@ -31,6 +36,7 @@ SUPABASE_ANON_KEY = _secret('SUPABASE_ANON_KEY')
 
 OAUTH_REDIRECT_URL = (
     os.getenv('AUTH_REDIRECT_URL')
+    or _secret('AUTH_REDIRECT_URL', 'supabase')
     or _secret('redirect_uri', 'google_oauth')
     or 'http://localhost:8501'
 )
@@ -80,7 +86,13 @@ def sign_up_with_password(email: str, password: str) -> Dict[str, Any]:
     if err:
         return {'error': err}
     try:
-        resp = get_client().auth.sign_up({'email': email, 'password': password})
+        resp = get_client().auth.sign_up({
+            'email': email,
+            'password': password,
+            'options': {
+                'email_redirect_to': OAUTH_REDIRECT_URL
+            }
+        })
         if resp.session and resp.user:
             return _session_dict(resp.session, resp.user)
         if resp.user:
@@ -140,8 +152,10 @@ def sign_out() -> None:
 def _humanize(exc: Exception) -> str:
     msg = str(exc)
     # supabase errors arrive as "<status>: {json blob}" — surface the human bit
+    if 'email not confirmed' in msg.lower():
+        return f'Email address not confirmed yet. Details: {msg}'
     if 'invalid_grant' in msg.lower() or 'invalid login' in msg.lower():
-        return 'Wrong email or password'
+        return f'Invalid login credentials. Please check your email and password. Details: {msg}'
     if 'user already registered' in msg.lower() or 'already been registered' in msg.lower():
         return 'An account with this email already exists — try signing in'
     if 'password should be at least' in msg.lower():
