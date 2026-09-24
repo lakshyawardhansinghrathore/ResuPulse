@@ -31,10 +31,22 @@ def _read_jd(jd_file, jd_text: str) -> str:
 
 def _show_backend_error(exc: Exception) -> None:
     """Translate a `requests` exception into a friendly Streamlit error."""
+    backend = api_client._backend_url()
     if isinstance(exc, requests.ConnectionError):
-        st.error("Could not reach the backend. Is `uvicorn backend.main:app` running on port 8000?")
+        if "localhost" in backend:
+            st.error(
+                "Could not reach the backend at `http://localhost:8000`. "
+                "If running locally, start it with `uvicorn backend.main:app --reload`. "
+                "If running on Streamlit Cloud, add `[backend] url = 'https://resupulse-1.onrender.com'` to your Streamlit App Secrets."
+            )
+        else:
+            st.error(
+                f"Could not reach backend at `{backend}`. "
+                "Render free tier spins down after inactivity and takes ~30–60 seconds to wake up. "
+                "Please wait 30 seconds and click **Analyze Resume** again."
+            )
     elif isinstance(exc, requests.Timeout):
-        st.error("The backend took too long to respond. Try a smaller resume or check the server logs.")
+        st.error("The backend took too long to respond. Render may still be waking up. Please try again.")
     elif isinstance(exc, requests.HTTPError) and exc.response is not None:
         try:
             detail = exc.response.json().get("detail", exc.response.text)

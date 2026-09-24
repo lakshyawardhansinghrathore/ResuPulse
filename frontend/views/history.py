@@ -5,8 +5,20 @@ from frontend.services import api_client
 
 
 def _show_backend_error(exc: Exception) -> None:
+    backend = api_client._backend_url()
     if isinstance(exc, requests.ConnectionError):
-        st.error("Could not reach the backend. Is it running on port 8000?")
+        if "localhost" in backend:
+            st.error(
+                "Could not reach the backend at `http://localhost:8000`. "
+                "If running locally, start it with `uvicorn backend.main:app`. "
+                "If running on Streamlit Cloud, add `[backend] url = 'https://resupulse-1.onrender.com'` to your Streamlit App Secrets."
+            )
+        else:
+            st.error(
+                f"Could not reach the backend at `{backend}`. "
+                "If hosted on Render free tier, the server may take ~30–60s to wake up. "
+                "Please refresh the page in a few seconds."
+            )
     elif isinstance(exc, requests.HTTPError) and exc.response is not None:
         st.error(f"Backend returned {exc.response.status_code}: {exc.response.text}")
     else:

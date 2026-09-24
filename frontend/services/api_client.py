@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, List
 
 import requests
@@ -8,10 +9,20 @@ DEFAULT_BACKEND_URL = "http://localhost:8000"
 
 
 def _backend_url() -> str:
+    url = os.getenv("BACKEND_URL", "")
+    if url:
+        return url.rstrip("/")
     try:
-        return st.secrets["backend"]["url"]
-    except (KeyError, FileNotFoundError):
-        return DEFAULT_BACKEND_URL
+        if hasattr(st, "secrets"):
+            if "BACKEND_URL" in st.secrets:
+                return str(st.secrets["BACKEND_URL"]).rstrip("/")
+            if "backend_url" in st.secrets:
+                return str(st.secrets["backend_url"]).rstrip("/")
+            if "backend" in st.secrets and "url" in st.secrets["backend"]:
+                return str(st.secrets["backend"]["url"]).rstrip("/")
+    except (KeyError, FileNotFoundError, AttributeError):
+        pass
+    return DEFAULT_BACKEND_URL
 
 
 def _auth_headers(access_token: str) -> Dict[str, str]:
