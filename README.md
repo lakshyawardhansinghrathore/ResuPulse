@@ -28,6 +28,11 @@
 | **Interactive API Docs** | https://resupulse-1.onrender.com/docs |
 | **GitHub Repository** | https://github.com/lakshyawardhansinghrathore/ResuPulse |
 
+### 🔑 Demo Account Credentials
+You can test the app immediately using these demo credentials:
+- **Email:** `lakshyasr7711@gmail.com`
+- **Password:** `Lakshya1`
+
 > **Note:** The backend runs on Render's free tier. The first request after inactivity may take ~30 s (cold start + lazy model loading). Subsequent requests are fast.
 
 ---
